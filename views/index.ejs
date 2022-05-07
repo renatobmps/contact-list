@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <h1>Contatos</h1>
+  <ul>
+    <% contatos.forEach(contato=> { %>
+      <li>
+        <%= contato.nome %>
+        <br>
+        <%= contato.email %>
+      </li>
+      <% }); %>
+  </ul>
+
+  <form onsubmit="enviaForm(event)">
+    <input type="text" name="nome" placeholder="Nome">
+    <input type="text" name="sobrenome" placeholder="Sobrenome">
+    <input type="tel" name="telefone" placeholder="(11) 94768-9391">
+    <input type="email" name="email" placeholder="Email">
+    <input type="password" name="password" placeholder="Senha">
+    <button type="submit">Enviar</button>
+  </form>
+
+  <script>
+
+    async function enviaForm(event) {
+      event.preventDefault();
+      const inputs = {
+        nome: document.querySelector('input[name="nome"]').value,
+        sobrenome: document.querySelector('input[name="sobrenome"]').value,
+        telefone: document.querySelector('input[name="telefone"]').value,
+        email: document.querySelector('input[name="email"]').value,
+        senha: document.querySelector('input[name="password"]').value,
+      };
+
+      try {
+        const dado = await fetch('/contato', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(inputs),
+        });
+
+        window.location.reload();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  </script>
+
+</body>
+
+</html>
