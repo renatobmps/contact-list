@@ -12,24 +12,44 @@
 <body>
 
   <h1>Contatos</h1>
-  <ul>
-    <% contatos.forEach(contato=> { %>
-      <li>
-        <%= contato.nome %>
-        <br>
-        <%= contato.email %>
-      </li>
-      <% }); %>
-  </ul>
+  <main>
+    <ul style="flex: 4;">
+      <% contatos.forEach(contato=> { %>
+        <li data-id="<%= contato.id %>">
+          <div class="dados">
+            <span id="nome">
+              <%= contato.nome %>
+            </span>
+            <span id="sobrenome">
+              <%= contato.sobrenome %>
+            </span>
+            <span id="email">
+              <%= contato.email %>
+            </span>
+            <span id="telefone">
+              <%= contato.telefone %>
+            </span>
+            <span>
+              <%= contato.senha %>
+            </span>
+          </div>
+          <div class="options">
+            <button class="action_button" onclick="trocaEdição(event)" data-editing="false">Editar</button>
+            <button class="action_button" onclick="apagaContato(<%= contato.id %>)">Apagar</button>
+          </div>
+        </li>
+        <% }); %>
+    </ul>
 
-  <form onsubmit="enviaForm(event)">
-    <input type="text" name="nome" placeholder="Nome">
-    <input type="text" name="sobrenome" placeholder="Sobrenome">
-    <input type="tel" name="telefone" placeholder="(11) 94768-9391">
-    <input type="email" name="email" placeholder="Email">
-    <input type="password" name="password" placeholder="Senha">
-    <button type="submit">Enviar</button>
-  </form>
+    <form onsubmit="enviaForm(event)">
+      <input type="text" name="nome" placeholder="Nome">
+      <input type="text" name="sobrenome" placeholder="Sobrenome">
+      <input type="tel" name="telefone" placeholder="(11) 94768-9391">
+      <input type="email" name="email" placeholder="Email">
+      <input type="password" name="password" placeholder="Senha">
+      <button type="submit">Enviar</button>
+    </form>
+  </main>
 
   <script>
 
@@ -44,7 +64,7 @@
       };
 
       try {
-        const dado = await fetch('/contato', {
+        const json = await fetch('/contato', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -52,11 +72,99 @@
           body: JSON.stringify(inputs),
         });
 
-        window.location.reload();
+        const id = await json.json();
+
+        document.querySelector('ul').innerHTML += `
+          <li data-id="${id.id}">
+            <div class="dados">
+              <span id="nome">
+                ${inputs.nome}
+              </span>
+              <span id="sobrenome">
+                ${inputs.sobrenome}
+              </span>
+              <span id="email">
+                ${inputs.email}
+              </span>
+              <span id="telefone">
+                ${inputs.telefone}
+              </span>
+              <span>
+                ${inputs.senha}
+              </span>
+            </div>
+            <div class="options">
+              <button class="action_button" onclick="window.location.reload()">Recarregar</button>
+              <button class="action_button" onclick="trocaEdição(event)" data-editing="false">Editar</button>
+              <button class="action_button" onclick="apagaContato(${id.id})">Apagar</button>
+            </div>
+          </li>
+        `;
       } catch (error) {
         console.error(error);
       }
     }
+
+    async function apagaContato(id) {
+      const dom = document.querySelector(`li[data-id="${id}"]`);
+      const confirm = window.confirm('Deseja apagar o contato?');
+
+      if (confirm) {
+        try {
+          await fetch(`/contato/${id}`, {
+            method: 'DELETE',
+          });
+
+          dom.remove();
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    }
+
+    function trocaEdição(event) {
+      const button = event.target;
+      const li = button.parentNode.parentNode;
+      const inputs = li.querySelectorAll('span');
+      const isEditing = JSON.parse(button.dataset.editing);
+      button.dataset.editing = !isEditing;
+
+      const possibilities = {
+        true: () => {
+          button.innerText = 'Salvar';
+          inputs.forEach(i => {
+            i.classList.add('editing');
+            i.contentEditable = true;
+          });
+        },
+        false: () => {
+          try {
+            const dado = fetch(`/contato/${li.dataset.id}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                nome: inputs[0].innerText,
+                sobrenome: inputs[1].innerText,
+                email: inputs[2].innerText,
+                telefone: inputs[3].innerText,
+                senha: inputs[4].innerText,
+              }),
+            });
+            button.innerText = 'Editar';
+            inputs.forEach(i => {
+              i.classList.remove('editing');
+              i.contentEditable = false;
+            });
+          } catch (error) {
+            console.error(error);
+          }
+        },
+      }
+      possibilities[!isEditing]();
+    }
+
   </script>
 
 </body>

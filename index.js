@@ -27,7 +27,7 @@ mysql.createConnection({
 });
 
 app.get('/', async (req, res) => {
-  try{
+  try {
     const sql = 'SELECT * FROM contatos';
     const response = await connection.execute(sql);
 
@@ -43,11 +43,14 @@ app.post('/contato', async (req, res) => {
   const { nome, sobrenome, telefone, email, senha } = req.body;
 
   try {
-    await connection.execute(
+    const response = await connection.execute(
       'INSERT INTO contatos (nome, sobrenome, telefone, email, senha) VALUES (?, ?, ?, ?, ?)',
       [nome, sobrenome, telefone, email, senha]
     );
-    res.status(201).send();
+    const id = response[0].insertId;
+    res.status(201).send({
+      id
+    });
   } catch (error) {
     console.error(error);
     res.status(500).send();
@@ -71,9 +74,19 @@ app.get('/contato/:id?', async (req, res) => {
 //UPDATE
 app.put('/contato/:id', async (req, res) => {
   const { id } = req.params;
-  const { nome, sobrenome, telefone, email, senha } = req.body;
+  let { nome, sobrenome, telefone, email, senha } = req.body;
 
   if (!id) return res.status(400).send({ message: 'Id is required' });
+
+  const response = await connection.execute(
+    `SELECT * FROM contatos WHERE id = ${id}`
+  );
+
+  nome = nome || response[0][0].nome;
+  sobrenome = sobrenome || response[0][0].sobrenome;
+  telefone = telefone || response[0][0].telefone;
+  email = email || response[0][0].email;
+  senha = senha || response[0][0].senha;
 
   try {
     await connection.execute(
