@@ -3,10 +3,13 @@ require('ejs');
 const mysql = require('mysql2/promise');
 const express = require('express');
 const app = express();
+const session = require('express-session');
 
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
 app.set('views', './views');
+
+app.use(session({ secret: process.env.SECRET, cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false }));
 
 app.use(express.json());
 
@@ -20,7 +23,7 @@ mysql.createConnection({
 }).then((c) => {
   connection = c;
   app.listen(process.env.PORT || 8080, () => {
-    console.log(`Server is running: http://localhost:${process.env.PORT || 8080}`);
+    console.info(`Server is running: http://localhost:${process.env.PORT || 8080}`);
   })
 }).catch((error) => {
   throw new Error(error)
@@ -28,10 +31,11 @@ mysql.createConnection({
 
 app.get('/', async (req, res) => {
   try {
+    const { user } = req.session;
     const sql = 'SELECT * FROM contatos';
     const response = await connection.execute(sql);
 
-    res.render('index.ejs', { contatos: response[0] });
+    res.render('index.ejs', { user, contatos: response[0] });
   } catch (error) {
     console.error(error);
     res.status(500).send();
@@ -116,4 +120,29 @@ app.delete('/contato/:id', async (req, res) => {
     console.error(error);
     res.status(500).send();
   }
+});
+
+app.post('/login', async (req, res) => {
+  const { email, senha } = req.body;
+
+  try {
+    const sql = `SELECT * FROM contatos WHERE email = '${email}' AND senha = '${senha}'`;
+    const response = await connection.execute(sql);
+
+    if (response[0].length > 0) {
+      req.session.user = response[0][0];
+      res.redirect('/');
+    }
+    else {
+      res.status(401).send({ message: 'Usuário ou senha incorretos' });
+    };
+  } catch (error) {
+    console.error(error);
+    res.status(500).send();
+  }
+});
+
+app.post('/logout', (req, res) => {
+  req.session.destroy();
+  res.redirect('/');
 });

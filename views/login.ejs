@@ -1,0 +1,54 @@
+<h2>Teste de login</h2>
+<% if(user) { %>
+  <h1>Logado:</h1>
+  <p>Nome: <%= user.nome %></p>
+  <p>Sobrenome: <%= user.sobrenome %></p>
+  <p>Email: <%= user.email %></p>
+  <p>Telefone: <%= user.telefone %></p>
+  <button onclick="logout()">Logout</button>
+  <script>
+    async function logout() {
+      try{
+        await fetch('/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        window.location.reload();
+      }catch(err){
+        console.error(err);
+      }
+    }
+  </script>
+<% } else { %>
+  <form onsubmit="enviaFormLogin(event)">
+    <input type="email" name="login_email" placeholder="E-mail" required>
+    <input type="password" name="login_senha" placeholder="Senha" required>
+    <button type="submit">Testar</button>
+  </form>
+  <script>
+    async function enviaFormLogin(event) {
+      event.preventDefault();
+      const inputs = {
+        email: document.querySelector('input[name="login_email"]').value,
+        senha: document.querySelector('input[name="login_senha"]').value,
+      };
+
+      try {
+        await fetch('/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(inputs),
+        });
+
+        window.location.reload();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  </script>
+
+<% } %>

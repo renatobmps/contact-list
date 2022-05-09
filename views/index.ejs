@@ -41,14 +41,17 @@
         <% }); %>
     </ul>
 
-    <form onsubmit="enviaForm(event)">
-      <input type="text" name="nome" placeholder="Nome">
-      <input type="text" name="sobrenome" placeholder="Sobrenome">
-      <input type="tel" name="telefone" placeholder="(11) 94768-9391">
-      <input type="email" name="email" placeholder="Email">
-      <input type="password" name="password" placeholder="Senha">
-      <button type="submit">Enviar</button>
-    </form>
+    <div class="form">
+      <form onsubmit="enviaForm(event)">
+        <input type="text" name="nome" placeholder="Nome">
+        <input type="text" name="sobrenome" placeholder="Sobrenome">
+        <input type="tel" name="telefone" placeholder="(11) 94768-9391">
+        <input type="email" name="email" placeholder="Email">
+        <input type="password" name="password" placeholder="Senha">
+        <button type="submit">Enviar</button>
+      </form>
+      <%- include('./login') %>
+    </div>
   </main>
 
   <script>
