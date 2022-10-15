@@ -10,10 +10,7 @@ app.set('view engine', 'ejs');
 app.set('views', './views');
 
 app.use(session({
-  secret: process.env.SECRET,
-  cookie: { maxAge: 60000 },
-  resave: false,
-  saveUninitialized: false
+	secret: process.env.SECRET, cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false
 }));
 
 app.use(express.json());
